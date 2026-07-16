@@ -2,6 +2,8 @@
 
 Hotsite simples para converter arquivos Cabrillo gerados por N1MM ou DXLog para o formato `.atl` do ATLogger.
 
+Desenvolvido por Fernando Fernandes PT9TI | PX9J4474 | 3RDX106.
+
 ## Aviso
 
 Este projeto é independente e não possui vínculo oficial com o Alfa Tango Group
@@ -9,10 +11,6 @@ ou com a plataforma ATLogger.
 
 ATLogger e eventuais marcas relacionadas pertencem aos seus respectivos
 titulares. A compatibilidade com o formato ATL não é garantida.
-
-URL publicada:
-
-- `https://n1mm-cabrillo-atlogger.pu9fso.chatgpt.site`
 
 ## Como usar
 

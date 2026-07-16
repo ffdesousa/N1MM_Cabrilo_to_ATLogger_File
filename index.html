@@ -5,103 +5,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Converta arquivos Cabrillo gerados pelo N1MM/DXLog para o formato ATLogger."
+      content="Conversão de logs Cabrillo do N1MM e DXLog para o ATLogger."
     />
-    <title>Cabrillo -> ATLogger</title>
+    <title>RIO DX GROUP - Conversão Cabrillo para ATLogger</title>
     <link rel="stylesheet" href="./styles.css" />
     <script type="module" src="./app.js"></script>
   </head>
   <body>
-    <main class="shell">
-      <section class="hero">
-        <div class="hero__copy">
-          <p class="eyebrow">Hotsite de conversao</p>
-          <h1>Cabrillo para ATLogger</h1>
-          <p class="lede">
-            Envie um log Cabrillo gerado pelo N1MM ou DXLog, ajuste os campos
-            do ATLogger e baixe o arquivo .atl pronto.
+    <main class="site-shell">
+      <header class="hero">
+        <div class="hero-brand">
+          <img
+            class="hero-logo"
+            src="./assets/rio-dx-group-logo.png"
+            alt="Logo do RIO DX GROUP"
+          />
+          <div class="hero-brand-copy">
+            <p class="eyebrow">RIO DX GROUP</p>
+            <h1>Cabrillo para ATLogger</h1>
+            <p class="lede">
+              Conversão de logs Cabrillo do N1MM e DXLog para o ATLogger.
+            </p>
+          </div>
+        </div>
+
+        <aside class="hero-disclaimer">
+          <strong class="hero-disclaimer-title">
+            <svg class="warning-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M12 3 1.8 20.5h20.4L12 3Zm0 4.6 6.1 10.4H5.9L12 7.6Zm0 3.2a1 1 0 0 0-1 1v2.9a1 1 0 0 0 2 0v-2.9a1 1 0 0 0-1-1Zm0 7.1a1.2 1.2 0 1 0 0-2.4 1.2 1.2 0 0 0 0 2.4Z" />
+            </svg>
+            Aviso
+          </strong>
+          <p>
+            Este projeto é independente e não possui vínculo, associação ou aprovação oficial do Alfa Tango Group
+            ou da plataforma ATLogger. Todas as marcas e nomes mencionados pertencem aos seus respectivos
+            proprietários.
           </p>
-        </div>
-        <div class="hero__card">
-          <h2>O que este hotsite faz</h2>
-          <ul>
-            <li>Le o Cabrillo do seu computador ou de um texto colado.</li>
-            <li>Gera o cabeçalho ATLogger e a linha CSV com os QSOs.</li>
-            <li>Mostra uma pre-visualizacao antes do download.</li>
-          </ul>
-        </div>
-      </section>
+        </aside>
+      </header>
 
-      <section class="panel">
-        <div class="panel__header">
-          <h2>Arquivo de entrada</h2>
-          <p>Os exemplos de referencia estao na pasta <code>exemplos/</code>.</p>
-        </div>
-
-        <div class="dropzone" id="dropzone">
-          <input id="fileInput" type="file" accept=".log,.txt,.cbr,.cabrillo,.adi,.log.txt" />
-          <label for="fileInput">
-            <strong>Escolher arquivo Cabrillo</strong>
-            <span>ou arraste e solte aqui</span>
-          </label>
-          <textarea
-            id="textInput"
-            placeholder="Opcional: cole aqui o texto Cabrillo para converter sem upload."
-            spellcheck="false"
-          ></textarea>
-        </div>
-      </section>
-
-      <section class="grid">
-        <article class="panel">
-          <div class="panel__header">
-            <h2>Metadados ATLogger</h2>
-            <p>Alguns campos do ATLogger nao existem no Cabrillo e precisam de ajuste manual.</p>
-          </div>
-
-          <form id="settingsForm" class="form">
-            <label>
-              <span>Call</span>
-              <input id="callPrefix" name="callPrefix" type="text" placeholder="3RDX106" />
-            </label>
-
-            <label>
-              <span>Category</span>
-              <select id="category" name="category">
-                <option value="SOP">SOP</option>
-                <option value="HQ">HQ</option>
-                <option value="HQD">HQD</option>
-              </select>
-            </label>
-
-            <label>
-              <span>Name do log</span>
-              <input id="name" name="name" type="text" placeholder="2026" />
-            </label>
-
-            <div class="actions">
-              <button id="convertBtn" type="submit">Converter</button>
-              <button id="downloadBtn" type="button" class="secondary" disabled>Baixar .atl</button>
-              <button id="copyBtn" type="button" class="secondary" disabled>Copiar resultado</button>
+      <section class="dashboard">
+        <div class="stack">
+          <article class="card accent-card">
+            <div class="card-head">
+              <h2>O que este hotsite faz</h2>
             </div>
-          </form>
-        </article>
+            <ul class="feature-list">
+              <li>Leitura de Cabrillo do arquivo ou texto colado.</li>
+              <li>Geração do cabeçalho ATLogger e da linha CSV.</li>
+              <li>Pré-visualização antes do download.</li>
+            </ul>
+          </article>
 
-        <article class="panel">
-          <div class="panel__header">
-            <h2>Resultado</h2>
-            <p id="status">Nenhum arquivo convertido ainda.</p>
-          </div>
+          <article class="card" id="input">
+            <div class="card-head">
+              <h2>Arquivo de entrada</h2>
+              <p>Os exemplos de referencia estao na pasta <code>exemplos/</code>.</p>
+            </div>
 
-          <pre id="output" class="output" aria-live="polite">Carregue um Cabrillo para gerar o arquivo ATLogger.</pre>
-        </article>
-      </section>
+            <div class="dropzone" id="dropzone">
+              <input id="fileInput" type="file" accept=".log,.txt,.cbr,.cabrillo,.adi,.log.txt" />
+              <label for="fileInput">
+                <strong>Escolher arquivo Cabrillo</strong>
+                <span>ou arraste e solte aqui</span>
+              </label>
+              <textarea
+                id="textInput"
+                placeholder="Opcional: cole aqui o texto Cabrillo para converter sem upload."
+                spellcheck="false"
+              ></textarea>
+            </div>
+          </article>
 
-      <section class="panel">
-        <div class="panel__header">
-          <h2>Formato esperado</h2>
-        </div>
-        <pre class="example"># Software: ATLogger
+          <section class="card example-card" id="example">
+            <div class="card-head">
+              <h2>Formato esperado</h2>
+            </div>
+            <pre class="example"># Software: ATLogger
 # Version: 1.0
 # Call: 3RDX106
 # Activity: WW11
@@ -110,7 +90,58 @@
 # Name: 2026
 # Prog: 2
 callsign,band,mode,rstx,rsrx,date,time,dxcc,group,unit,opname,prog,rcvd</pre>
+          </section>
+        </div>
+
+        <div class="stack">
+          <article class="card" id="settings">
+            <div class="card-head">
+              <h2>Metadados ATLogger</h2>
+              <p>Campos que normalmente precisam de ajuste manual.</p>
+            </div>
+
+            <form id="settingsForm" class="form">
+              <label>
+                <span>Call</span>
+                <input id="callPrefix" name="callPrefix" type="text" placeholder="3RDX106" />
+              </label>
+
+              <label>
+                <span>Category</span>
+                <select id="category" name="category">
+                  <option value="SOP">SOP</option>
+                  <option value="HQ">HQ</option>
+                  <option value="HQD">HQD</option>
+                </select>
+              </label>
+
+              <label>
+                <span>Name do log</span>
+                <input id="name" name="name" type="text" placeholder="2026" />
+              </label>
+
+              <div class="actions">
+                <button id="convertBtn" type="submit">Converter</button>
+                <button id="downloadBtn" type="button" class="secondary" disabled>Baixar .atl</button>
+                <button id="copyBtn" type="button" class="secondary" disabled>Copiar resultado</button>
+              </div>
+            </form>
+          </article>
+
+          <article class="card" id="result">
+            <div class="card-head">
+              <h2>Resultado</h2>
+              <p id="status">Nenhum arquivo convertido ainda.</p>
+            </div>
+
+            <pre id="output" class="output" aria-live="polite">Carregue um Cabrillo para gerar o arquivo ATLogger.</pre>
+          </article>
+        </div>
       </section>
+
+      <footer class="site-footer">
+        <p class="site-credit">Desenvolvido por Fernando Fernandes PT9TI | PX9J4474 | 3RDX106.</p>
+      </footer>
     </main>
   </body>
 </html>
