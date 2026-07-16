@@ -6,8 +6,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
 
-const inputPath = path.join(repoRoot, "exemplos", "Cabrilo", "PX9D CQWPX SSB 2025.log.txt");
-const outputPath = path.join(repoRoot, "exemplos", "Cabrilo", "3RDX106.txt");
+const inputPath = path.join(repoRoot, "exemplos", "Cabrillo", "PX9D CQWPX SSB 2025.log.txt");
+const outputPath = path.join(repoRoot, "exemplos", "Cabrillo", "3RDX106.txt");
 
 const sampleCalls = [
   "205DA4",
