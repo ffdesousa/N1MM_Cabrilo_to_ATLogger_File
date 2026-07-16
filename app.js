@@ -9,6 +9,8 @@ const dropzone = $("dropzone");
 const form = $("settingsForm");
 const output = $("output");
 const status = $("status");
+const pageAlert = $("pageAlert");
+const pageAlertText = $("pageAlertText");
 const downloadBtn = $("downloadBtn");
 const copyBtn = $("copyBtn");
 
@@ -37,6 +39,16 @@ function setStatus(message, isError = false) {
   status.classList.toggle("error", isError);
 }
 
+function showAlert(message) {
+  pageAlertText.textContent = message;
+  pageAlert.hidden = false;
+}
+
+function clearAlert() {
+  pageAlertText.textContent = "";
+  pageAlert.hidden = true;
+}
+
 function validateContestHeader(headers) {
   const contest = String(headers.CONTEST || "").trim();
   if (contest.toUpperCase() !== REQUIRED_CONTEST.toUpperCase()) {
@@ -53,11 +65,11 @@ function parseAndValidateSource(text) {
   return parsed;
 }
 
-function renderOutput(text) {
+function renderOutput(text, isError = false) {
   output.textContent = text;
-  state.lastOutput = text;
-  downloadBtn.disabled = !text;
-  copyBtn.disabled = !text;
+  state.lastOutput = isError ? "" : text;
+  downloadBtn.disabled = isError || !text;
+  copyBtn.disabled = isError || !text;
 }
 
 function ensureNameFallback(settings) {
@@ -110,11 +122,14 @@ async function handleConvert(event) {
   event.preventDefault();
   try {
     const result = convertSource();
+    clearAlert();
     renderOutput(result.text);
     setStatus(`Convertido com sucesso: ${result.rowCount} linhas QSO geradas.`);
   } catch (error) {
-    renderOutput("Erro ao converter o arquivo.");
-    setStatus(error.message || String(error), true);
+    const message = error.message || String(error);
+    showAlert(message);
+    setStatus(message, true);
+    renderOutput("Conversão bloqueada. Corrija o Cabrillo e tente novamente.", true);
   }
 }
 
@@ -137,9 +152,13 @@ fileInput.addEventListener("change", async () => {
     state.sourceText = await readFile(file);
     textInput.value = "";
     const parsed = parseAndValidateSource(state.sourceText);
+    clearAlert();
     setStatus(`Arquivo carregado: ${file.name} | CONTEST: ${String(parsed.headers.CONTEST || "").trim()}`);
   } catch (error) {
-    setStatus(error.message || String(error), true);
+    const message = error.message || String(error);
+    showAlert(message);
+    setStatus(message, true);
+    renderOutput("Arquivo inválido. Corrija o Cabrillo e tente novamente.", true);
   }
 });
 
@@ -174,9 +193,13 @@ dropzone.addEventListener("drop", async (event) => {
     fileInput.value = "";
     textInput.value = "";
     const parsed = parseAndValidateSource(state.sourceText);
+    clearAlert();
     setStatus(`Arquivo carregado: ${file.name} | CONTEST: ${String(parsed.headers.CONTEST || "").trim()}`);
   } catch (error) {
-    setStatus(error.message || String(error), true);
+    const message = error.message || String(error);
+    showAlert(message);
+    setStatus(message, true);
+    renderOutput("Arquivo inválido. Corrija o Cabrillo e tente novamente.", true);
   }
 });
 
@@ -186,4 +209,5 @@ copyBtn.addEventListener("click", () => copyResult().catch((error) => setStatus(
 
 $("category").value = "HQD";
 $("name").value = String(new Date().getFullYear());
+clearAlert();
 renderOutput("Carregue um Cabrillo para gerar o arquivo ATLogger.");

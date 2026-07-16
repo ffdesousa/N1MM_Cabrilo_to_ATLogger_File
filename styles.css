@@ -116,6 +116,44 @@ button {
   font-weight: 700;
 }
 
+.page-alert {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 16px 18px;
+  border: 1px solid #c0392b;
+  border-left: 10px solid #b42318;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fff4f2 0%, #ffe5e1 100%);
+  color: #6b1d16;
+  box-shadow: 0 10px 24px rgba(180, 35, 24, 0.12);
+}
+
+.page-alert-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #8b1d13;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.alert-icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  fill: currentColor;
+}
+
+.page-alert p {
+  margin: 0;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
 .hero-logo {
   width: 92px;
   height: 92px;
