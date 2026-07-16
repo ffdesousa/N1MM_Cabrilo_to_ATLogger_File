@@ -1,0 +1,10 @@
+# Software: ATLogger
+# Version: 1.0
+# Call: 3GO/HQ
+# Activity: WW11
+# Category: HQ
+# Creation: 2026-07-16 17:51:54
+# Name: 2026
+# Prog: 2
+callsign,band,mode,rstx,rsrx,date,time,dxcc,group,unit,opname,prog,rcvd
+3RDX106,11,SSB,59,59,16/07/2026,17:52:03,3,RDX,106,,1,155

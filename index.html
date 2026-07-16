@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Converta arquivos Cabrillo gerados pelo N1MM/DXLog para o formato ATLogger."
+    />
+    <title>Cabrillo -> ATLogger</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero__copy">
+          <p class="eyebrow">Hotsite de conversao</p>
+          <h1>Cabrillo para ATLogger</h1>
+          <p class="lede">
+            Envie um log Cabrillo gerado pelo N1MM ou DXLog, ajuste os campos
+            do ATLogger e baixe o arquivo .atl pronto.
+          </p>
+        </div>
+        <div class="hero__card">
+          <h2>O que este hotsite faz</h2>
+          <ul>
+            <li>Le o Cabrillo do seu computador ou de um texto colado.</li>
+            <li>Gera o cabeçalho ATLogger e a linha CSV com os QSOs.</li>
+            <li>Mostra uma pre-visualizacao antes do download.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">
+          <h2>Arquivo de entrada</h2>
+          <p>Os exemplos de referencia estao na pasta <code>exemplos/</code>.</p>
+        </div>
+
+        <div class="dropzone" id="dropzone">
+          <input id="fileInput" type="file" accept=".log,.txt,.cbr,.cabrillo,.adi,.log.txt" />
+          <label for="fileInput">
+            <strong>Escolher arquivo Cabrillo</strong>
+            <span>ou arraste e solte aqui</span>
+          </label>
+          <textarea
+            id="textInput"
+            placeholder="Opcional: cole aqui o texto Cabrillo para converter sem upload."
+            spellcheck="false"
+          ></textarea>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="panel">
+          <div class="panel__header">
+            <h2>Metadados ATLogger</h2>
+            <p>Alguns campos do ATLogger nao existem no Cabrillo e precisam de ajuste manual.</p>
+          </div>
+
+          <form id="settingsForm" class="form">
+            <label>
+              <span>Call</span>
+              <input id="callPrefix" name="callPrefix" type="text" placeholder="3RDX106" />
+            </label>
+
+            <label>
+              <span>Category</span>
+              <select id="category" name="category">
+                <option value="SOP">SOP</option>
+                <option value="HQ">HQ</option>
+                <option value="HQD">HQD</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Name do log</span>
+              <input id="name" name="name" type="text" placeholder="2026" />
+            </label>
+
+            <div class="actions">
+              <button id="convertBtn" type="submit">Converter</button>
+              <button id="downloadBtn" type="button" class="secondary" disabled>Baixar .atl</button>
+              <button id="copyBtn" type="button" class="secondary" disabled>Copiar resultado</button>
+            </div>
+          </form>
+        </article>
+
+        <article class="panel">
+          <div class="panel__header">
+            <h2>Resultado</h2>
+            <p id="status">Nenhum arquivo convertido ainda.</p>
+          </div>
+
+          <pre id="output" class="output" aria-live="polite">Carregue um Cabrillo para gerar o arquivo ATLogger.</pre>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">
+          <h2>Formato esperado</h2>
+        </div>
+        <pre class="example"># Software: ATLogger
+# Version: 1.0
+# Call: 3RDX106
+# Activity: WW11
+# Category: HQD
+# Creation: 2026-07-16 17:49:51
+# Name: 2026
+# Prog: 2
+callsign,band,mode,rstx,rsrx,date,time,dxcc,group,unit,opname,prog,rcvd</pre>
+      </section>
+    </main>
+  </body>
+</html>

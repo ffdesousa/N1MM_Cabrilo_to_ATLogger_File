@@ -1,0 +1,11 @@
+# Software: ATLogger
+# Version: 1.0
+# Call: 3RDX106
+# Activity: WW11
+# Category: SOP
+# Creation: 2026-07-16 17:48:16
+# Name: 2026
+# Prog: 3
+callsign,band,mode,rstx,rsrx,date,time,dxcc,group,unit,opname,prog,rcvd
+3RDX2,11,SSB,59,59,16/07/2026,17:48:30,3,RDX,2,Fabio,1,1
+3DKD1,11,SSB,59,59,16/07/2026,17:48:50,3,DKD,1,Flavio,2,100
