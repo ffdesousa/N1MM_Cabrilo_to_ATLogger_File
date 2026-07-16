@@ -130,6 +130,10 @@ button {
   box-shadow: 0 10px 24px rgba(180, 35, 24, 0.12);
 }
 
+.page-alert[hidden] {
+  display: none !important;
+}
+
 .page-alert-title {
   display: inline-flex;
   align-items: center;
