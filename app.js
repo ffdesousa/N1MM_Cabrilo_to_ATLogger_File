@@ -13,12 +13,15 @@ const pageAlert = $("pageAlert");
 const pageAlertText = $("pageAlertText");
 const downloadBtn = $("downloadBtn");
 const copyBtn = $("copyBtn");
+const ALERT_TIMEOUT_MS = 6000;
 
 const state = {
   sourceText: "",
   fileName: "log.atl",
   lastOutput: "",
 };
+
+let alertTimerId = null;
 
 function readSettings() {
   return {
@@ -40,11 +43,22 @@ function setStatus(message, isError = false) {
 }
 
 function showAlert(message) {
+  if (alertTimerId) {
+    window.clearTimeout(alertTimerId);
+    alertTimerId = null;
+  }
   pageAlertText.textContent = message;
   pageAlert.hidden = false;
+  alertTimerId = window.setTimeout(() => {
+    clearAlert();
+  }, ALERT_TIMEOUT_MS);
 }
 
 function clearAlert() {
+  if (alertTimerId) {
+    window.clearTimeout(alertTimerId);
+    alertTimerId = null;
+  }
   pageAlertText.textContent = "";
   pageAlert.hidden = true;
 }
@@ -156,7 +170,6 @@ fileInput.addEventListener("change", async () => {
     setStatus(`Arquivo carregado: ${file.name} | CONTEST: ${String(parsed.headers.CONTEST || "").trim()}`);
   } catch (error) {
     const message = error.message || String(error);
-    showAlert(message);
     setStatus(message, true);
     renderOutput("Arquivo inválido. Corrija o Cabrillo e tente novamente.", true);
   }
@@ -197,7 +210,6 @@ dropzone.addEventListener("drop", async (event) => {
     setStatus(`Arquivo carregado: ${file.name} | CONTEST: ${String(parsed.headers.CONTEST || "").trim()}`);
   } catch (error) {
     const message = error.message || String(error);
-    showAlert(message);
     setStatus(message, true);
     renderOutput("Arquivo inválido. Corrija o Cabrillo e tente novamente.", true);
   }
