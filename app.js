@@ -1,6 +1,7 @@
 import { buildAtl, parseHeadersAndQso } from "./converter.js";
 
 const $ = (id) => document.getElementById(id);
+const REQUIRED_CONTEST = "DXSerial";
 
 const fileInput = $("fileInput");
 const textInput = $("textInput");
@@ -36,6 +37,22 @@ function setStatus(message, isError = false) {
   status.classList.toggle("error", isError);
 }
 
+function validateContestHeader(headers) {
+  const contest = String(headers.CONTEST || "").trim();
+  if (contest.toUpperCase() !== REQUIRED_CONTEST.toUpperCase()) {
+    throw new Error(
+      `O Cabrillo precisa conter CONTEST: ${REQUIRED_CONTEST}. Valor encontrado: ${contest || "vazio"}.`,
+    );
+  }
+  return contest;
+}
+
+function parseAndValidateSource(text) {
+  const parsed = parseHeadersAndQso(text);
+  validateContestHeader(parsed.headers);
+  return parsed;
+}
+
 function renderOutput(text) {
   output.textContent = text;
   state.lastOutput = text;
@@ -55,7 +72,7 @@ function convertSource() {
     throw new Error("Selecione um arquivo Cabrillo ou cole o texto da entrada.");
   }
 
-  const parsed = parseHeadersAndQso(state.sourceText);
+  const parsed = parseAndValidateSource(state.sourceText);
   const settings = readSettings();
   ensureNameFallback(settings);
 
@@ -119,7 +136,8 @@ fileInput.addEventListener("change", async () => {
     state.fileName = `${fileBaseName(file.name)}.atl`;
     state.sourceText = await readFile(file);
     textInput.value = "";
-    setStatus(`Arquivo carregado: ${file.name}`);
+    const parsed = parseAndValidateSource(state.sourceText);
+    setStatus(`Arquivo carregado: ${file.name} | CONTEST: ${String(parsed.headers.CONTEST || "").trim()}`);
   } catch (error) {
     setStatus(error.message || String(error), true);
   }
@@ -155,7 +173,8 @@ dropzone.addEventListener("drop", async (event) => {
     state.sourceText = await readFile(file);
     fileInput.value = "";
     textInput.value = "";
-    setStatus(`Arquivo carregado: ${file.name}`);
+    const parsed = parseAndValidateSource(state.sourceText);
+    setStatus(`Arquivo carregado: ${file.name} | CONTEST: ${String(parsed.headers.CONTEST || "").trim()}`);
   } catch (error) {
     setStatus(error.message || String(error), true);
   }

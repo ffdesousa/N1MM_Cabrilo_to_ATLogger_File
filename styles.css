@@ -205,6 +205,34 @@ h1 {
   color: var(--muted);
 }
 
+.input-note {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px solid #b6c64f;
+  border-left: 8px solid #f5d94c;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fffbe0 0%, #f7f3c9 100%);
+  color: #3d3a18;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.input-note strong {
+  color: #5d5400;
+}
+
+.input-note code {
+  background: #fff8d6;
+  border: 1px solid #e0c93d;
+  border-radius: 999px;
+  padding: 2px 8px;
+  color: #4e4600;
+}
+
 .feature-list {
   margin: 0;
   padding-left: 18px;
