@@ -1,4 +1,9 @@
-import { buildAtl, formatValidationIssues, parseHeadersAndQso } from "./converter.js";
+import {
+  buildAtl,
+  formatValidationIssues,
+  parseHeadersAndQso,
+  validateRequiredSettings,
+} from "./converter.js";
 
 const $ = (id) => document.getElementById(id);
 const fileInput = $("fileInput");
@@ -23,9 +28,9 @@ let alertTimerId = null;
 
 function readSettings() {
   return {
-    callPrefix: $("callPrefix").value,
-    category: $("category").value,
-    name: $("name").value,
+    callPrefix: $("callPrefix").value.trim(),
+    category: $("category").value.trim(),
+    name: $("name").value.trim(),
   };
 }
 
@@ -68,17 +73,18 @@ function renderOutput(text, isError = false) {
   copyBtn.disabled = isError || !text;
 }
 
-function ensureNameFallback(settings) {
-  if (!String(settings.name || "").trim()) {
-    settings.name = String(new Date().getFullYear());
-    $("name").value = settings.name;
-  }
-}
-
 function formatConversionError(error) {
   if (error && Array.isArray(error.issues) && error.issues.length) {
+    const missingFormField = (issue) => {
+      const field = String(issue?.field || "").trim().toUpperCase();
+      const message = String(issue?.message || "").trim().toUpperCase();
+      return !issue?.lineNumber && ["CALL", "CATEGORY", "NAME DO LOG"].includes(field) && /^(INFORME|SELECIONE)/.test(message);
+    };
     return {
-      summary: "Cabrillo inválido. Veja os detalhes no resultado.",
+      summary:
+        error.issues.every(missingFormField)
+          ? "Preencha Call, Category e Name do log."
+          : "Cabrillo inválido. Veja os detalhes no resultado.",
       details: formatValidationIssues(error.issues),
     };
   }
@@ -91,16 +97,16 @@ function formatConversionError(error) {
 }
 
 function convertSource() {
+  const settings = readSettings();
+  const normalizedSettings = validateRequiredSettings(settings);
+
   if (!state.sourceText.trim()) {
     throw new Error("Selecione um arquivo Cabrillo ou cole o texto da entrada.");
   }
 
   const parsed = parseHeadersAndQso(state.sourceText);
-  const settings = readSettings();
-  ensureNameFallback(settings);
-
-  const result = buildAtl(parsed, settings);
-  const sourceName = fileBaseName(state.fileName || settings.callPrefix || parsed.headers.CALLSIGN || "log");
+  const result = buildAtl(parsed, normalizedSettings);
+  const sourceName = fileBaseName(state.fileName || normalizedSettings.callPrefix || "log");
   state.fileName = `${sourceName}.atl`;
   return result;
 }
@@ -214,7 +220,5 @@ form.addEventListener("submit", handleConvert);
 downloadBtn.addEventListener("click", downloadResult);
 copyBtn.addEventListener("click", () => copyResult().catch((error) => setStatus(error.message || String(error), true)));
 
-$("category").value = "HQD";
-$("name").value = String(new Date().getFullYear());
 clearAlert();
 renderOutput("Carregue um Cabrillo para gerar o arquivo ATLogger.");

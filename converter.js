@@ -3,6 +3,7 @@ export function normalizeLineEndings(text) {
 }
 
 const REQUIRED_CONTEST = "DXSerial";
+const ALLOWED_CATEGORIES = new Set(["SOP", "HQ", "HQD"]);
 
 function normalizeCallText(call) {
   return String(call || "").trim().toUpperCase();
@@ -136,6 +137,11 @@ export function formatValidationIssues(issues = [], maxItems = 12) {
 
     const field = displayIssueField(issue.field || issue.context);
 
+    if (!issue.lineNumber && issue.message) {
+      lines.push(`- ${field}: ${issue.message}`);
+      return;
+    }
+
     if (String(issue.field || "").trim().toUpperCase() === "CONTEST") {
       lines.push(`- ${field}: ${displayIssueValue(issue.value)}`);
       return;
@@ -195,6 +201,63 @@ export function validate11mCallsign(call, context = "indicativo") {
   return normalized;
 }
 
+export function validateRequiredSettings(settings = {}) {
+  const issues = [];
+  const callPrefix = String(settings.callPrefix || "").trim();
+  const category = String(settings.category || "").trim().toUpperCase();
+  const name = String(settings.name || "").trim();
+
+  if (!callPrefix) {
+    issues.push({
+      field: "Call",
+      value: "",
+      message: "Informe o Call do formulário.",
+    });
+  } else {
+    try {
+      validate11mCallsign(callPrefix, "Call");
+    } catch (error) {
+      issues.push({
+        field: "Call",
+        value: callPrefix,
+        message: error.message || String(error),
+      });
+    }
+  }
+
+  if (!category) {
+    issues.push({
+      field: "Category",
+      value: "",
+      message: "Selecione a categoria do log.",
+    });
+  } else if (!ALLOWED_CATEGORIES.has(category)) {
+    issues.push({
+      field: "Category",
+      value: category,
+      message: "Selecione uma categoria válida: SOP, HQ ou HQD.",
+    });
+  }
+
+  if (!name) {
+    issues.push({
+      field: "Name do log",
+      value: "",
+      message: "Informe o nome do log.",
+    });
+  }
+
+  if (issues.length) {
+    throw createValidationError(issues);
+  }
+
+  return {
+    callPrefix: callPrefix.toUpperCase(),
+    category,
+    name,
+  };
+}
+
 export function validate11mLog(parsed, settings = {}) {
   const issues = [];
   const seen = new Set();
@@ -217,12 +280,12 @@ export function validate11mLog(parsed, settings = {}) {
     });
   }
 
-  const effectiveCall = normalizeCallText(settings.callPrefix || parsed?.headers?.CALLSIGN || "");
+  const effectiveCall = normalizeCallText(settings.callPrefix || "");
   try {
     validate11mCallsign(effectiveCall, "CALLSIGN");
     } catch (error) {
       pushIssue({
-        field: "Call do formulário",
+        field: "Call",
         value: effectiveCall,
         context: "CALLSIGN",
         message: error.message || String(error),
@@ -230,7 +293,7 @@ export function validate11mLog(parsed, settings = {}) {
   }
 
   const headerCall = normalizeCallText(parsed?.headers?.CALLSIGN || "");
-  if (headerCall && headerCall !== effectiveCall) {
+  if (effectiveCall && headerCall && headerCall !== effectiveCall) {
     try {
       validate11mCallsign(headerCall, "CALLSIGN do Cabrillo");
     } catch (error) {
@@ -422,14 +485,15 @@ export function buildAtl(parsed, settings = {}) {
     throw new Error("Nenhuma linha QSO foi encontrada no Cabrillo.");
   }
 
-  validate11mLog(parsed, settings);
+  const normalizedSettings = validateRequiredSettings(settings);
+  validate11mLog(parsed, normalizedSettings);
 
-  const call = String(settings.callPrefix || parsed.headers.CALLSIGN || "").trim().toUpperCase();
+  const call = normalizedSettings.callPrefix;
   const headerCallParts = parseCallParts(call);
   const activity = "WW11";
-  const category = String(settings.category || "").trim();
+  const category = normalizedSettings.category;
   const creation = String(settings.creation || formatCreation()).trim();
-  const name = String(settings.name || inferNameFromLog(parsed, new Date().getFullYear())).trim();
+  const name = normalizedSettings.name;
   const band = String(settings.band || "11").trim();
   const headerProg = String(settings.prog || String(parsed.qsos.length + 1)).trim();
   const defaultOpname = String(settings.opname || "").trim();

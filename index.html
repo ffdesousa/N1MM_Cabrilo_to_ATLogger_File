@@ -130,18 +130,19 @@ callsign,band,mode,rstx,rsrx,date,time,dxcc,group,unit,opname,prog,rcvd</pre>
           <article class="card" id="settings">
             <div class="card-head">
               <h2>Metadados ATLogger</h2>
-              <p>Campos que normalmente precisam de ajuste manual.</p>
+              <p>Campos obrigatórios: Call, Category e Name do log.</p>
             </div>
 
             <form id="settingsForm" class="form">
               <label>
-                <span>Call</span>
+                <span>Call *</span>
                 <input id="callPrefix" name="callPrefix" type="text" placeholder="3RDX106" />
               </label>
 
               <label>
-                <span>Category</span>
+                <span>Category *</span>
                 <select id="category" name="category">
+                  <option value="" selected disabled>Selecione</option>
                   <option value="SOP">SOP</option>
                   <option value="HQ">HQ</option>
                   <option value="HQD">HQD</option>
@@ -149,7 +150,7 @@ callsign,band,mode,rstx,rsrx,date,time,dxcc,group,unit,opname,prog,rcvd</pre>
               </label>
 
               <label>
-                <span>Name do log</span>
+                <span>Name do log *</span>
                 <input id="name" name="name" type="text" placeholder="2026" />
               </label>
 
