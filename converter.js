@@ -3,7 +3,10 @@ export function normalizeLineEndings(text) {
 }
 
 const REQUIRED_CONTEST = "DXSerial";
-const TEN_M_CALLSIGN_PATTERN = /^(?<prefix>\d{1,3})(?<group>[A-Z]{2,})(?:(?<serial>\d{1,4})|\/HQ)$/;
+
+function normalizeCallText(call) {
+  return String(call || "").trim().toUpperCase();
+}
 
 export function parseQsoLine(line) {
   const tokens = line.replace(/^QSO:\s*/i, "").trim().split(/\s+/);
@@ -74,21 +77,38 @@ export function validateContestHeader(headers) {
 }
 
 export function isValid11mCallsign(call) {
-  const normalized = String(call || "").trim().toUpperCase();
-  return TEN_M_CALLSIGN_PATTERN.test(normalized);
+  const normalized = normalizeCallText(call);
+  if (!normalized) {
+    return false;
+  }
+
+  const parts = parseCallParts(normalized);
+  if (!parts.dxcc || !parts.group) {
+    return false;
+  }
+
+  if (normalized.endsWith("/HQ")) {
+    return true;
+  }
+
+  if (parts.unit) {
+    return true;
+  }
+
+  return parts.group.length >= 4;
 }
 
 export function validate11mCallsign(call, context = "indicativo") {
-  const normalized = String(call || "").trim().toUpperCase();
+  const normalized = normalizeCallText(call);
   if (!normalized) {
     throw new Error(
-      `Indicativo ausente em ${context}. Use o padrão 11m, como 1AT23, 205DA4 ou 14AT/HQ.`,
+      `Indicativo ausente em ${context}. Use o padrão 11m, como 1AT23, 205DA4, 165/1AT35, 161/233EK115, 14DELTAFOX ou 14AT/HQ.`,
     );
   }
 
   if (!isValid11mCallsign(normalized)) {
     throw new Error(
-      `Indicativo inválido em ${context}: ${normalized}. Use o padrão 11m: prefixo numérico + grupo em letras + sequência, ou /HQ. Exemplos válidos: 1AT23, 205DA4, 14AT/HQ, 14OMEGA/HQ.`,
+      `Indicativo inválido em ${context}: ${normalized}. Use formatos 11m como 1AT23, 205DA4, 165/1AT35, 161/233EK115, 14DELTAFOX ou 14AT/HQ.`,
     );
   }
 
@@ -155,9 +175,8 @@ export function csvEscape(value) {
 }
 
 export function parseCallParts(call) {
-  const text = String(call || "").trim().toUpperCase();
-  const match = text.match(/^(?<dxcc>\d+)?(?<group>[A-Z]+)(?<unit>\d+)?(?:\/(?<suffix>[A-Z0-9]+))?$/);
-  if (!match || !match.groups) {
+  const text = normalizeCallText(call);
+  if (!text) {
     return {
       call: text,
       dxcc: "",
@@ -166,11 +185,35 @@ export function parseCallParts(call) {
     };
   }
 
+  let working = text;
+  let suffix = "";
+  if (working.endsWith("/HQ")) {
+    suffix = "HQ";
+    working = working.slice(0, -3);
+  }
+
+  let dxcc = "";
+  const slashIndex = working.indexOf("/");
+  if (slashIndex > 0) {
+    dxcc = working.slice(0, slashIndex);
+    working = working.slice(slashIndex + 1);
+  }
+
+  const match = working.match(/^(?<prefix>\d{1,3})?(?<group>[A-Z]{2,})(?<serial>\d{0,4})$/);
+  if (!match || !match.groups) {
+    return {
+      call: text,
+      dxcc,
+      group: "",
+      unit: suffix,
+    };
+  }
+
   return {
     call: text,
-    dxcc: match.groups.dxcc || "",
+    dxcc: dxcc || match.groups.prefix || "",
     group: match.groups.group || "",
-    unit: match.groups.unit || match.groups.suffix || "",
+    unit: suffix || match.groups.serial || "",
   };
 }
 
