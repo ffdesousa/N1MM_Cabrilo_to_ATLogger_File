@@ -128,6 +128,7 @@ button {
   grid-template-columns: auto minmax(0, 1fr);
   gap: 12px;
   align-items: start;
+  margin-top: 12px;
   padding: 16px 18px;
   border: 1px solid #c0392b;
   border-left: 10px solid #b42318;
