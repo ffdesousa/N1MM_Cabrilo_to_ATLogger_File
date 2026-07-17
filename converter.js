@@ -199,7 +199,7 @@ export function parseCallParts(call) {
     working = working.slice(slashIndex + 1);
   }
 
-  const match = working.match(/^(?<prefix>\d{1,3})?(?<group>[A-Z]{2,})(?<serial>\d{0,4})$/);
+  const match = working.match(/^(?<prefix>\d{1,3})(?<group>[A-Z]{2,})(?<serial>\d{0,4})(?<tail>[A-Z]{0,4})$/);
   if (!match || !match.groups) {
     return {
       call: text,
@@ -209,11 +209,26 @@ export function parseCallParts(call) {
     };
   }
 
+  const group = match.groups.group || "";
+  const serial = match.groups.serial || "";
+  const tail = match.groups.tail || "";
+  const hasUnit = Boolean(serial || tail);
+  const isLongGroup = group.length >= 4;
+
+  if (!suffix && !hasUnit && !isLongGroup) {
+    return {
+      call: text,
+      dxcc,
+      group: "",
+      unit: "",
+    };
+  }
+
   return {
     call: text,
     dxcc: dxcc || match.groups.prefix || "",
-    group: match.groups.group || "",
-    unit: suffix || match.groups.serial || "",
+    group,
+    unit: suffix || `${serial}${tail}`,
   };
 }
 
