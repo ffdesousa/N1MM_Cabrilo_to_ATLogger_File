@@ -1,8 +1,6 @@
 import { buildAtl, parseHeadersAndQso } from "./converter.js";
 
 const $ = (id) => document.getElementById(id);
-const REQUIRED_CONTEST = "DXSerial";
-
 const fileInput = $("fileInput");
 const textInput = $("textInput");
 const dropzone = $("dropzone");
@@ -63,22 +61,6 @@ function clearAlert() {
   pageAlert.hidden = true;
 }
 
-function validateContestHeader(headers) {
-  const contest = String(headers.CONTEST || "").trim();
-  if (contest.toUpperCase() !== REQUIRED_CONTEST.toUpperCase()) {
-    throw new Error(
-      `O Cabrillo precisa conter CONTEST: ${REQUIRED_CONTEST}. Valor encontrado: ${contest || "vazio"}.`,
-    );
-  }
-  return contest;
-}
-
-function parseAndValidateSource(text) {
-  const parsed = parseHeadersAndQso(text);
-  validateContestHeader(parsed.headers);
-  return parsed;
-}
-
 function renderOutput(text, isError = false) {
   output.textContent = text;
   state.lastOutput = isError ? "" : text;
@@ -98,7 +80,7 @@ function convertSource() {
     throw new Error("Selecione um arquivo Cabrillo ou cole o texto da entrada.");
   }
 
-  const parsed = parseAndValidateSource(state.sourceText);
+  const parsed = parseHeadersAndQso(state.sourceText);
   const settings = readSettings();
   ensureNameFallback(settings);
 
@@ -165,9 +147,8 @@ fileInput.addEventListener("change", async () => {
     state.fileName = `${fileBaseName(file.name)}.atl`;
     state.sourceText = await readFile(file);
     textInput.value = "";
-    const parsed = parseAndValidateSource(state.sourceText);
     clearAlert();
-    setStatus(`Arquivo carregado: ${file.name} | CONTEST: ${String(parsed.headers.CONTEST || "").trim()}`);
+    setStatus(`Arquivo carregado: ${file.name}.`);
   } catch (error) {
     const message = error.message || String(error);
     setStatus(message, true);
@@ -205,9 +186,8 @@ dropzone.addEventListener("drop", async (event) => {
     state.sourceText = await readFile(file);
     fileInput.value = "";
     textInput.value = "";
-    const parsed = parseAndValidateSource(state.sourceText);
     clearAlert();
-    setStatus(`Arquivo carregado: ${file.name} | CONTEST: ${String(parsed.headers.CONTEST || "").trim()}`);
+    setStatus(`Arquivo carregado: ${file.name}.`);
   } catch (error) {
     const message = error.message || String(error);
     setStatus(message, true);

@@ -2,6 +2,9 @@ export function normalizeLineEndings(text) {
   return String(text || "").replace(/\r\n?/g, "\n");
 }
 
+const REQUIRED_CONTEST = "DXSerial";
+const TEN_M_CALLSIGN_PATTERN = /^(?<prefix>\d{1,3})(?<group>[A-Z]{2,})(?:(?<serial>\d{1,4})|\/HQ)$/;
+
 export function parseQsoLine(line) {
   const tokens = line.replace(/^QSO:\s*/i, "").trim().split(/\s+/);
 
@@ -58,6 +61,58 @@ export function parseHeadersAndQso(text) {
   }
 
   return { headers, qsos };
+}
+
+export function validateContestHeader(headers) {
+  const contest = String(headers?.CONTEST || "").trim();
+  if (contest.toUpperCase() !== REQUIRED_CONTEST.toUpperCase()) {
+    throw new Error(
+      `O Cabrillo precisa conter CONTEST: ${REQUIRED_CONTEST}. Valor encontrado: ${contest || "vazio"}.`,
+    );
+  }
+  return contest;
+}
+
+export function isValid11mCallsign(call) {
+  const normalized = String(call || "").trim().toUpperCase();
+  return TEN_M_CALLSIGN_PATTERN.test(normalized);
+}
+
+export function validate11mCallsign(call, context = "indicativo") {
+  const normalized = String(call || "").trim().toUpperCase();
+  if (!normalized) {
+    throw new Error(
+      `Indicativo ausente em ${context}. Use o padrão 11m, como 1AT23, 205DA4 ou 14AT/HQ.`,
+    );
+  }
+
+  if (!isValid11mCallsign(normalized)) {
+    throw new Error(
+      `Indicativo inválido em ${context}: ${normalized}. Use o padrão 11m: prefixo numérico + grupo em letras + sequência, ou /HQ. Exemplos válidos: 1AT23, 205DA4, 14AT/HQ, 14OMEGA/HQ.`,
+    );
+  }
+
+  return normalized;
+}
+
+export function validate11mLog(parsed, settings = {}) {
+  validateContestHeader(parsed.headers);
+
+  const effectiveCall = String(settings.callPrefix || parsed.headers.CALLSIGN || "").trim();
+  validate11mCallsign(effectiveCall, "CALLSIGN");
+  if (String(parsed.headers.CALLSIGN || "").trim()) {
+    validate11mCallsign(parsed.headers.CALLSIGN, "CALLSIGN do Cabrillo");
+  }
+
+  parsed.qsos.forEach((qso, index) => {
+    const position = index + 1;
+    if (String(qso.ownCall || "").trim()) {
+      validate11mCallsign(qso.ownCall, `QSO ${position} / ownCall`);
+    }
+    validate11mCallsign(qso.contactCall, `QSO ${position} / contactCall`);
+  });
+
+  return effectiveCall.toUpperCase();
 }
 
 function pad2(value) {
@@ -162,6 +217,8 @@ export function buildAtl(parsed, settings = {}) {
   if (!parsed.qsos.length) {
     throw new Error("Nenhuma linha QSO foi encontrada no Cabrillo.");
   }
+
+  validate11mLog(parsed, settings);
 
   const call = String(settings.callPrefix || parsed.headers.CALLSIGN || "").trim().toUpperCase();
   const headerCallParts = parseCallParts(call);
