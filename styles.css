@@ -248,10 +248,9 @@ h1 {
 }
 
 .input-note {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
+  display: grid;
+  gap: 4px;
+  align-items: start;
   margin: 0 0 14px;
   padding: 12px 14px;
   border: 1px solid #b6c64f;
@@ -265,6 +264,10 @@ h1 {
 
 .input-note strong {
   color: #5d5400;
+}
+
+.input-note span {
+  display: block;
 }
 
 .input-note code {
