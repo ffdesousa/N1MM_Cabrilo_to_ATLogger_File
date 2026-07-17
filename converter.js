@@ -292,20 +292,6 @@ export function validate11mLog(parsed, settings = {}) {
       });
   }
 
-  const headerCall = normalizeCallText(parsed?.headers?.CALLSIGN || "");
-  if (effectiveCall && headerCall && headerCall !== effectiveCall) {
-    try {
-      validate11mCallsign(headerCall, "CALLSIGN do Cabrillo");
-    } catch (error) {
-      pushIssue({
-        field: "Call do Cabrillo",
-        value: headerCall,
-        context: "CALLSIGN do Cabrillo",
-        message: error.message || String(error),
-      });
-    }
-  }
-
   parsed.qsos.forEach((qso, index) => {
     const lineNumber = Number(qso?.lineNumber || index + 1);
     if (String(qso?.ownCall || "").trim()) {
