@@ -20,6 +20,7 @@ export function parseQsoLine(line) {
     contactCall: tokens[7] || "",
     rcvdRst: tokens[8] || "",
     rcvdExchange: tokens[9] || "",
+    comment: tokens.slice(10).join(" ").trim(),
     raw: line,
   };
 }
@@ -193,6 +194,7 @@ export function buildAtl(parsed, settings = {}) {
     const mode = String(qso.mode || "").toUpperCase();
     const rstx = qso.sentRst || (mode === "CW" ? "599" : defaultRstx);
     const rsrx = qso.rcvdRst || (mode === "CW" ? "599" : defaultRsrx);
+    const opname = String(qso.comment || defaultOpname).trim();
     const contactCall = String(qso.contactCall || "").trim().toUpperCase();
     const contactCallParts = parseCallParts(contactCall);
     const row = [
@@ -206,7 +208,7 @@ export function buildAtl(parsed, settings = {}) {
       contactCallParts.dxcc || headerDxcc,
       contactCallParts.group,
       contactCallParts.unit,
-      defaultOpname,
+      opname,
       seqProg,
       qso.rcvdExchange || defaultRcvd,
     ].map(csvEscape);
