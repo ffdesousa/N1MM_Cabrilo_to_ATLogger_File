@@ -60,7 +60,7 @@ button {
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+  grid-template-columns: 1fr;
   gap: 24px;
   align-items: stretch;
 }
@@ -444,8 +444,7 @@ button:disabled {
   opacity: 0.5;
 }
 
-.output,
-.example {
+.output {
   margin: 0;
   padding: 16px;
   overflow: auto;
@@ -458,17 +457,6 @@ button:disabled {
 
 .output {
   min-height: 420px;
-}
-
-#example {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-#example .example {
-  flex: 1;
-  min-height: 0;
 }
 
 #result {
@@ -506,13 +494,6 @@ button:disabled {
   color: #607065;
   font-size: 0.82rem;
   letter-spacing: 0.01em;
-}
-
-.example-card code {
-  background: #eef5ec;
-  border: 1px solid #d8e2d4;
-  border-radius: 999px;
-  padding: 2px 7px;
 }
 
 .error {
