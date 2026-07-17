@@ -8,7 +8,7 @@ function normalizeCallText(call) {
   return String(call || "").trim().toUpperCase();
 }
 
-export function parseQsoLine(line) {
+export function parseQsoLine(line, lineNumber = 0) {
   const tokens = line.replace(/^QSO:\s*/i, "").trim().split(/\s+/);
 
   if (tokens.length < 10) {
@@ -27,6 +27,7 @@ export function parseQsoLine(line) {
     rcvdRst: tokens[8] || "",
     rcvdExchange: tokens[9] || "",
     comment: tokens.slice(10).join(" ").trim(),
+    lineNumber,
     raw: line,
   };
 }
@@ -36,7 +37,7 @@ export function parseHeadersAndQso(text) {
   const headers = {};
   const qsos = [];
 
-  for (const rawLine of lines) {
+  for (const [lineIndex, rawLine] of lines.entries()) {
     const line = rawLine.trimEnd();
     if (!line) {
       continue;
@@ -51,7 +52,7 @@ export function parseHeadersAndQso(text) {
     }
 
     if (/^QSO:/i.test(line)) {
-      qsos.push(parseQsoLine(line));
+      qsos.push(parseQsoLine(line, lineIndex + 1));
       continue;
     }
 
@@ -74,6 +75,85 @@ export function validateContestHeader(headers) {
     );
   }
   return contest;
+}
+
+function issueKey(issue) {
+  const field = String(issue?.field || "").trim().toUpperCase();
+  const value = normalizeCallText(issue?.value || "");
+  const lineNumber = Number(issue?.lineNumber || 0);
+  return `${field}:${value}:${lineNumber}`;
+}
+
+function displayIssueValue(value) {
+  const text = String(value ?? "").trim();
+  return text || "(vazio)";
+}
+
+function displayIssueField(field) {
+  const text = String(field || "").trim();
+  if (!text) {
+    return "Cabrillo";
+  }
+  if (text.toUpperCase() === "CONTEST") {
+    return "Contest";
+  }
+  return text;
+}
+
+function createValidationError(issues) {
+  const error = new Error(summarizeValidationIssues(issues));
+  error.name = "ValidationError";
+  error.issues = issues;
+  return error;
+}
+
+export function summarizeValidationIssues(issues = []) {
+  const total = Array.isArray(issues) ? issues.length : 0;
+  if (total === 0) {
+    return "Nenhum problema encontrado no Cabrillo.";
+  }
+  if (total === 1) {
+    return "Foi encontrado 1 problema no Cabrillo.";
+  }
+  return `Foram encontrados ${total} problemas no Cabrillo.`;
+}
+
+export function formatValidationIssues(issues = [], maxItems = 12) {
+  const total = Array.isArray(issues) ? issues.length : 0;
+  if (total === 0) {
+    return "Nenhum problema encontrado no Cabrillo.";
+  }
+
+  const lines = [
+    summarizeValidationIssues(issues),
+    "",
+  ];
+
+  issues.slice(0, maxItems).forEach((issue) => {
+    if (!issue) {
+      return;
+    }
+
+    const field = displayIssueField(issue.field || issue.context);
+
+    if (String(issue.field || "").trim().toUpperCase() === "CONTEST") {
+      lines.push(`- ${field}: ${displayIssueValue(issue.value)}`);
+      return;
+    }
+
+    const location = issue.lineNumber ? `linha ${issue.lineNumber}` : "";
+    const prefix = location ? `${location} | ` : "";
+    lines.push(`- ${prefix}${field}: ${displayIssueValue(issue.value)}`);
+    if (issue.lineText) {
+      lines.push(`  ${issue.lineText}`);
+    }
+  });
+
+  if (total > maxItems) {
+    lines.push(`- ... e mais ${total - maxItems}`);
+  }
+
+  return lines.join("\n");
 }
 
 export function isValid11mCallsign(call) {
@@ -116,21 +196,87 @@ export function validate11mCallsign(call, context = "indicativo") {
 }
 
 export function validate11mLog(parsed, settings = {}) {
-  validateContestHeader(parsed.headers);
+  const issues = [];
+  const seen = new Set();
 
-  const effectiveCall = String(settings.callPrefix || parsed.headers.CALLSIGN || "").trim();
-  validate11mCallsign(effectiveCall, "CALLSIGN");
-  if (String(parsed.headers.CALLSIGN || "").trim()) {
-    validate11mCallsign(parsed.headers.CALLSIGN, "CALLSIGN do Cabrillo");
+  const pushIssue = (issue) => {
+    const key = issueKey(issue);
+    if (seen.has(key)) {
+      return;
+    }
+    seen.add(key);
+    issues.push(issue);
+  };
+
+  const contest = String(parsed?.headers?.CONTEST || "").trim();
+  if (contest.toUpperCase() !== REQUIRED_CONTEST.toUpperCase()) {
+    pushIssue({
+      field: "CONTEST",
+      value: contest,
+      context: "header",
+    });
+  }
+
+  const effectiveCall = normalizeCallText(settings.callPrefix || parsed?.headers?.CALLSIGN || "");
+  try {
+    validate11mCallsign(effectiveCall, "CALLSIGN");
+    } catch (error) {
+      pushIssue({
+        field: "Call do formulário",
+        value: effectiveCall,
+        context: "CALLSIGN",
+        message: error.message || String(error),
+      });
+  }
+
+  const headerCall = normalizeCallText(parsed?.headers?.CALLSIGN || "");
+  if (headerCall && headerCall !== effectiveCall) {
+    try {
+      validate11mCallsign(headerCall, "CALLSIGN do Cabrillo");
+    } catch (error) {
+      pushIssue({
+        field: "Call do Cabrillo",
+        value: headerCall,
+        context: "CALLSIGN do Cabrillo",
+        message: error.message || String(error),
+      });
+    }
   }
 
   parsed.qsos.forEach((qso, index) => {
-    const position = index + 1;
-    if (String(qso.ownCall || "").trim()) {
-      validate11mCallsign(qso.ownCall, `QSO ${position} / ownCall`);
+    const lineNumber = Number(qso?.lineNumber || index + 1);
+    if (String(qso?.ownCall || "").trim()) {
+      try {
+        validate11mCallsign(qso.ownCall, `QSO ${lineNumber} / ownCall`);
+      } catch (error) {
+        pushIssue({
+          field: "Indicativo da estação",
+          value: qso.ownCall,
+          lineNumber,
+          context: "QSO ownCall",
+          lineText: qso.raw,
+          message: error.message || String(error),
+        });
+      }
     }
-    validate11mCallsign(qso.contactCall, `QSO ${position} / contactCall`);
+
+    try {
+      validate11mCallsign(qso.contactCall, `QSO ${lineNumber} / contactCall`);
+    } catch (error) {
+      pushIssue({
+        field: "Indicativo recebido",
+        value: qso.contactCall,
+        lineNumber,
+        context: "QSO contactCall",
+        lineText: qso.raw,
+        message: error.message || String(error),
+      });
+    }
   });
+
+  if (issues.length) {
+    throw createValidationError(issues);
+  }
 
   return effectiveCall.toUpperCase();
 }

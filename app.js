@@ -1,4 +1,4 @@
-import { buildAtl, parseHeadersAndQso } from "./converter.js";
+import { buildAtl, formatValidationIssues, parseHeadersAndQso } from "./converter.js";
 
 const $ = (id) => document.getElementById(id);
 const fileInput = $("fileInput");
@@ -75,6 +75,21 @@ function ensureNameFallback(settings) {
   }
 }
 
+function formatConversionError(error) {
+  if (error && Array.isArray(error.issues) && error.issues.length) {
+    return {
+      summary: "Cabrillo inválido. Veja os detalhes no resultado.",
+      details: formatValidationIssues(error.issues),
+    };
+  }
+
+  const message = error.message || String(error);
+  return {
+    summary: message,
+    details: `Conversão bloqueada. ${message}`,
+  };
+}
+
 function convertSource() {
   if (!state.sourceText.trim()) {
     throw new Error("Selecione um arquivo Cabrillo ou cole o texto da entrada.");
@@ -122,10 +137,10 @@ async function handleConvert(event) {
     renderOutput(result.text);
     setStatus(`Convertido com sucesso: ${result.rowCount} linhas QSO geradas.`);
   } catch (error) {
-    const message = error.message || String(error);
-    showAlert(message);
-    setStatus(message, true);
-    renderOutput("Conversão bloqueada. Corrija o Cabrillo e tente novamente.", true);
+    const { summary, details } = formatConversionError(error);
+    showAlert(summary);
+    setStatus(summary, true);
+    renderOutput(details, true);
   }
 }
 
