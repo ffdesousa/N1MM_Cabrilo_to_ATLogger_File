@@ -133,15 +133,20 @@ callsign,band,mode,rstx,rsrx,date,time,dxcc,group,unit,opname,prog,rcvd</pre>
               <p>Campos obrigatórios: Call, Category e Name do log.</p>
             </div>
 
+            <div class="form-callout">
+              <strong>Preencha antes de converter</strong>
+              <span>Esses campos definem o cabeçalho final do arquivo .atl.</span>
+            </div>
+
             <form id="settingsForm" class="form">
-              <label>
-                <span>Call *</span>
-                <input id="callPrefix" name="callPrefix" type="text" placeholder="3RDX106" />
+              <label class="required-field">
+                <span class="field-label">Call <em class="required-badge">obrigatório</em></span>
+                <input id="callPrefix" name="callPrefix" type="text" placeholder="3RDX106" aria-required="true" />
               </label>
 
-              <label>
-                <span>Category *</span>
-                <select id="category" name="category">
+              <label class="required-field">
+                <span class="field-label">Category <em class="required-badge">obrigatório</em></span>
+                <select id="category" name="category" aria-required="true">
                   <option value="" selected disabled>Selecione</option>
                   <option value="SOP">SOP</option>
                   <option value="HQ">HQ</option>
@@ -149,9 +154,9 @@ callsign,band,mode,rstx,rsrx,date,time,dxcc,group,unit,opname,prog,rcvd</pre>
                 </select>
               </label>
 
-              <label>
-                <span>Name do log *</span>
-                <input id="name" name="name" type="text" placeholder="2026" />
+              <label class="required-field">
+                <span class="field-label">Name do log <em class="required-badge">obrigatório</em></span>
+                <input id="name" name="name" type="text" placeholder="2026" aria-required="true" />
               </label>
 
               <div class="actions">
