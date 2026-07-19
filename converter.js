@@ -466,6 +466,19 @@ export function inferNameFromLog(parsed, fallback = "") {
   return fallback;
 }
 
+function inferNextSentExchange(qsos) {
+  const lastSentExchange = [...(qsos || [])]
+    .reverse()
+    .map((qso) => String(qso?.sentExchange || "").trim())
+    .find((exchange) => /^\d+$/.test(exchange));
+
+  if (lastSentExchange) {
+    return String(Number(lastSentExchange) + 1);
+  }
+
+  return String((qsos || []).length + 1);
+}
+
 export function buildAtl(parsed, settings = {}) {
   if (!parsed.qsos.length) {
     throw new Error("Nenhuma linha QSO foi encontrada no Cabrillo.");
@@ -481,7 +494,7 @@ export function buildAtl(parsed, settings = {}) {
   const creation = String(settings.creation || formatCreation()).trim();
   const name = normalizedSettings.name;
   const band = String(settings.band || "11").trim();
-  const headerProg = String(settings.prog || String(parsed.qsos.length + 1)).trim();
+  const headerProg = String(settings.prog || inferNextSentExchange(parsed.qsos)).trim();
   const defaultOpname = String(settings.opname || "").trim();
   const defaultRcvd = String(settings.rcvd || "1").trim();
   const defaultRstx = String(settings.rstx || "59").trim();
@@ -501,7 +514,9 @@ export function buildAtl(parsed, settings = {}) {
   ];
 
   parsed.qsos.forEach((qso, index) => {
-    const seqProg = String(index + 1);
+    // Preserve the sent exchange from Cabrillo. In ATLogger this is the
+    // station's sent progression, not the row index after conversion.
+    const sentProg = String(qso.sentExchange || "").trim();
     const mode = String(qso.mode || "").toUpperCase();
     const rstx = qso.sentRst || (mode === "CW" ? "599" : defaultRstx);
     const rsrx = qso.rcvdRst || (mode === "CW" ? "599" : defaultRsrx);
@@ -520,7 +535,7 @@ export function buildAtl(parsed, settings = {}) {
       contactCallParts.group,
       contactCallParts.unit,
       opname,
-      seqProg,
+      sentProg,
       qso.rcvdExchange || defaultRcvd,
     ].map(csvEscape);
 
